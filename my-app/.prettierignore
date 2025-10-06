@@ -1,0 +1,19 @@
+node_modules
+.next
+out
+build
+coverage
+public
+**/*.svg
+**/*.ico
+**/*.png
+**/*.jpg
+**/*.webp
+**/*.gif
+**/*.lock
+*.lock
+
+# Generated files
+.next/**
+**/dist/**
+**/build/**
