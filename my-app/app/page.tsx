@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { Suspense } from "react";
-import { GeneratorForm } from "./components/generator-form";
+import { GeneratorForm } from "@/components/generator-form";
 
 export default function Home(): JSX.Element {
   return (
