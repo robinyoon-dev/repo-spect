@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 
+
 interface GenerateResponse {
   content: string;
 }
@@ -48,19 +49,20 @@ export function GeneratorForm(): JSX.Element {
       setResultMarkdown("");
 
       try {
-        const res = await fetch("/api/generate", {
+        const data = await fetch("/api/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ repoUrl }),
         });
 
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || `Request failed with ${res.status}`);
+        if (!data.ok) {
+          const text = await data.text();
+          throw new Error(text || `Request failed with ${data.status}`);
         }
 
-        const data = (await res.json()) as GenerateResponse;
-        setResultMarkdown(data.content ?? "");
+        const result = (await data.json()) as GenerateResponse;
+        console.log(result);
+        setResultMarkdown(result.content ?? "");
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
         setErrorMessage(message);
