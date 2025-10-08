@@ -24,7 +24,7 @@ export function IssueCard({ issue }: IssueCardProps): JSX.Element {
     minute: "2-digit",
   });
 
-  const closedDate = issue.closedAt 
+  const closedDate = issue.closedAt
     ? new Date(issue.closedAt).toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
@@ -38,15 +38,10 @@ export function IssueCard({ issue }: IssueCardProps): JSX.Element {
     <Card className="w-full">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-foreground line-clamp-2">
-              {issue.title}
-            </h3>
-            <div className="flex items-center gap-2 mt-2">
-              <Badge 
-                variant={issue.state === "open" ? "default" : "secondary"}
-                className="text-xs"
-              >
+          <div className="min-w-0 flex-1">
+            <h3 className="text-foreground line-clamp-2 text-sm font-medium">{issue.title}</h3>
+            <div className="mt-2 flex items-center gap-2">
+              <Badge variant={issue.state === "open" ? "default" : "secondary"} className="text-xs">
                 #{issue.number} {issue.state}
               </Badge>
               {issue.labels.length > 0 && (
@@ -56,10 +51,10 @@ export function IssueCard({ issue }: IssueCardProps): JSX.Element {
                       key={label.id}
                       variant="outline"
                       className="text-xs"
-                      style={{ 
+                      style={{
                         backgroundColor: `#${label.color}20`,
                         borderColor: `#${label.color}`,
-                        color: `#${label.color}`
+                        color: `#${label.color}`,
                       }}
                     >
                       {label.name}
@@ -79,21 +74,19 @@ export function IssueCard({ issue }: IssueCardProps): JSX.Element {
       <CardContent className="pt-0">
         <div className="space-y-2">
           {issue.body && (
-            <div className="text-sm text-muted-foreground line-clamp-3">
-              {issue.body}
-            </div>
+            <div className="text-muted-foreground line-clamp-3 text-sm">{issue.body}</div>
           )}
-          
+
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">Author:</span>
-            <span className="font-medium">{issue.authorName || issue.authorLogin || "Unknown"}</span>
+            <span className="font-medium">
+              {issue.authorName || issue.authorLogin || "Unknown"}
+            </span>
             {issue.authorLogin && issue.authorName !== issue.authorLogin && (
-              <span className="text-muted-foreground">
-                (@{issue.authorLogin})
-              </span>
+              <span className="text-muted-foreground">(@{issue.authorLogin})</span>
             )}
           </div>
-          
+
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">Created:</span>
             <span>{createdDate}</span>

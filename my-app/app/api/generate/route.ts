@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const content = `# DUMMY DATA! Repo-spect Draft\n\nSource: ${repoUrl}\n\n- This is a placeholder response.\n- Wire this to Gemini once the backend is ready.`;
 
     return NextResponse.json({ content }, { status: 200 });
-      } catch {
-        return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-      }
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
 }

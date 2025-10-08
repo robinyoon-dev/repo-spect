@@ -13,7 +13,6 @@ import { CommitCard } from "./commit-card";
 import { IssueCard } from "./issue-card";
 import { formatCommitsAsMarkdown } from "../lib/repository";
 
-
 interface RepositoryResponse {
   commits: CommitOut[];
 }
@@ -22,7 +21,7 @@ interface IssuesResponse {
   issues: IssueOut[];
 }
 
-
+//TODO: 추후 UI 개선 필요.
 export function GeneratorForm(): JSX.Element {
   const [repoUrl, setRepoUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -86,7 +85,7 @@ export function GeneratorForm(): JSX.Element {
 
         const commitsResult = (await commitsResponse.json()) as RepositoryResponse;
         const issuesResult = (await issuesResponse.json()) as IssuesResponse;
-        
+
         setCommits(Array.isArray(commitsResult.commits) ? commitsResult.commits : []);
         setIssues(Array.isArray(issuesResult.issues) ? issuesResult.issues : []);
         setIsLoading(false);
@@ -136,7 +135,9 @@ export function GeneratorForm(): JSX.Element {
         ) : null}
 
         {!commits.length && !issues.length && !isLoading && !errorMessage ? (
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">Your repository data will appear here.</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            Your repository data will appear here.
+          </p>
         ) : null}
 
         {isLoading ? (
@@ -146,8 +147,8 @@ export function GeneratorForm(): JSX.Element {
           </div>
         ) : null}
 
-        {(commits.length > 0 || issues.length > 0) ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {commits.length > 0 || issues.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Commits Section */}
             {commits.length > 0 && (
               <Card>

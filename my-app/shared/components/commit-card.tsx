@@ -23,17 +23,15 @@ export function CommitCard({ commit, index }: CommitCardProps): JSX.Element {
     <Card className="w-full">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-foreground line-clamp-2">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-foreground line-clamp-2 text-sm font-medium">
               {commit.message || "No message"}
             </h3>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="mt-2 flex items-center gap-2">
               <Badge variant="secondary" className="text-xs">
                 #{index + 1}
               </Badge>
-              <span className="text-xs text-muted-foreground font-mono">
-                {shortSha}
-              </span>
+              <span className="text-muted-foreground font-mono text-xs">{shortSha}</span>
             </div>
           </div>
         </div>
@@ -44,12 +42,10 @@ export function CommitCard({ commit, index }: CommitCardProps): JSX.Element {
             <span className="text-muted-foreground">Author:</span>
             <span className="font-medium">{commit.authorName || "Unknown"}</span>
             {commit.authorLogin && (
-              <span className="text-muted-foreground">
-                (@{commit.authorLogin})
-              </span>
+              <span className="text-muted-foreground">(@{commit.authorLogin})</span>
             )}
           </div>
-          
+
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">Date:</span>
             <span>{commitDate}</span>
@@ -61,7 +57,7 @@ export function CommitCard({ commit, index }: CommitCardProps): JSX.Element {
               href={commit.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline font-mono text-xs"
+              className="text-primary font-mono text-xs hover:underline"
             >
               {commit.sha}
             </a>
