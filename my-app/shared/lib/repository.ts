@@ -8,35 +8,35 @@ import { CommitOut } from "@/shared/types/repository";
 //   https://github.com/owner/repo/tree/main (추가 세그먼트 있어도 OK)
 // ──────────────────────────────────────────────────────────────────────────────
 export const parseRepoUrl = (input: string) => {
-    try {
-        const u = new URL(input);
-        if (u.hostname !== "github.com") {
-            throw new Error("Not a GitHub URL");
-        }
-        const segments = u.pathname.replace(/^\/+|\/+$/g, "").split("/");
-        // 최소 owner/repo
-        if (segments.length < 2) throw new Error("Invalid GitHub repo URL");
-        const [owner, repo] = segments;
-        if (!owner || !repo) throw new Error("Invalid GitHub repo URL");
-        return { owner, repo };
-    } catch {
-        throw new Error("Invalid URL format");
-    }   
-}
-
+  try {
+    const u = new URL(input);
+    if (u.hostname !== "github.com") {
+      throw new Error("Not a GitHub URL");
+    }
+    const segments = u.pathname.replace(/^\/+|\/+$/g, "").split("/");
+    // 최소 owner/repo
+    if (segments.length < 2) throw new Error("Invalid GitHub repo URL");
+    const [owner, repo] = segments;
+    if (!owner || !repo) throw new Error("Invalid GitHub repo URL");
+    return { owner, repo };
+  } catch {
+    throw new Error("Invalid URL format");
+  }
+};
 
 export function formatCommitsAsMarkdown(commits: CommitOut[]): string {
-    if (!commits || commits.length === 0) {
-        return "No commits found.";
-    }
+  if (!commits || commits.length === 0) {
+    return "No commits found.";
+  }
 
-    const header = `# Repository Commit History\n\nFound ${commits.length} recent commits:\n\n`;
+  const header = `# Repository Commit History\n\nFound ${commits.length} recent commits:\n\n`;
 
-    const commitList = commits.map((commit, index) => {
-        const commitDate = new Date(commit.date || "").toLocaleDateString();
-        const shortSha = commit.sha.substring(0, 7);
+  const commitList = commits
+    .map((commit, index) => {
+      const commitDate = new Date(commit.date || "").toLocaleDateString();
+      const shortSha = commit.sha.substring(0, 7);
 
-        return `## ${index + 1}. ${commit.message || "No message"}
+      return `## ${index + 1}. ${commit.message || "No message"}
   
   - **Author:** ${commit.authorName || "Unknown"} (@${commit.authorLogin || "unknown"})
   - **Date:** ${commitDate}
@@ -44,7 +44,8 @@ export function formatCommitsAsMarkdown(commits: CommitOut[]): string {
   - **SHA:** \`${commit.sha}\`
   
   `;
-    }).join("---\n\n");
+    })
+    .join("---\n\n");
 
-    return header + commitList;
+  return header + commitList;
 }
