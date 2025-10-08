@@ -9,16 +9,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import { CommitOut } from "@/shared/types/repository";
+import { CommitCard } from "./commit-card";
+import { formatCommitsAsMarkdown } from "../lib/repository";
 
 
 interface RepositoryResponse {
   commits: CommitOut[];
 }
 
+
 export function GeneratorForm(): JSX.Element {
   const [repoUrl, setRepoUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [resultMarkdown, setResultMarkdown] = useState<string>("");
+  const [commits, setCommits] = useState<CommitOut[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
   const isRepoUrlValid = useMemo(() => {
@@ -32,13 +35,14 @@ export function GeneratorForm(): JSX.Element {
   }, [repoUrl]);
 
   const handleCopy = useCallback(async () => {
-    if (!resultMarkdown) return;
+    if (!commits.length) return;
     try {
-      await navigator.clipboard.writeText(resultMarkdown);
+      const markdownContent = formatCommitsAsMarkdown(commits);
+      await navigator.clipboard.writeText(markdownContent);
     } catch (err) {
       console.error("clipboard write failed", err);
     }
-  }, [resultMarkdown]);
+  }, [commits]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -47,7 +51,7 @@ export function GeneratorForm(): JSX.Element {
 
       setIsLoading(true);
       setErrorMessage("");
-      setResultMarkdown("");
+      setCommits([]);
 
       try {
         const data = await fetch(`/api/repository?url=${repoUrl}`, {
@@ -61,12 +65,8 @@ export function GeneratorForm(): JSX.Element {
         }
 
         const result = (await data.json()) as RepositoryResponse;
-        console.log(result);
-        setResultMarkdown(
-          Array.isArray(result.commits)
-            ? JSON.stringify(result.commits, null, 2)
-            : ""
-        );
+        
+        setCommits(Array.isArray(result.commits) ? result.commits : []);
         setIsLoading(false);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
@@ -113,29 +113,33 @@ export function GeneratorForm(): JSX.Element {
           </Alert>
         ) : null}
 
-        {!resultMarkdown && !isLoading && !errorMessage ? (
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">Your generated story will appear here.</p>
+        {!commits.length && !isLoading && !errorMessage ? (
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Your commit history will appear here.</p>
         ) : null}
 
         {isLoading ? (
           <div className="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
             <Spinner className="h-4 w-4" />
-            Fetching and generating...
+            Fetching commit history...
           </div>
         ) : null}
 
-        {resultMarkdown ? (
+        {commits.length > 0 ? (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base font-semibold">Generated Story</CardTitle>
+              <CardTitle className="text-base font-semibold">
+                Commit History ({commits.length} commits)
+              </CardTitle>
               <Button type="button" variant="outline" size="sm" onClick={handleCopy}>
-                Copy
+                Copy as Markdown
               </Button>
             </CardHeader>
             <CardContent>
-              <article className="prose prose-neutral max-w-none dark:prose-invert">
-                <ReactMarkdown>{resultMarkdown}</ReactMarkdown>
-              </article>
+              <div className="space-y-4">
+                {commits.map((commit, index) => (
+                  <CommitCard key={commit.sha} commit={commit} index={index} />
+                ))}
+              </div>
             </CardContent>
           </Card>
         ) : null}
