@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
-import { CommitOut } from "@/shared/types/repository";
+import { CommitOut, IssueOut } from "@/shared/types/repository";
 import { CommitCard } from "./commit-card";
+import { IssueCard } from "./issue-card";
 import { formatCommitsAsMarkdown } from "../lib/repository";
 
 
@@ -17,11 +18,16 @@ interface RepositoryResponse {
   commits: CommitOut[];
 }
 
+interface IssuesResponse {
+  issues: IssueOut[];
+}
+
 
 export function GeneratorForm(): JSX.Element {
   const [repoUrl, setRepoUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [commits, setCommits] = useState<CommitOut[]>([]);
+  const [issues, setIssues] = useState<IssueOut[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
   const isRepoUrlValid = useMemo(() => {
@@ -52,21 +58,37 @@ export function GeneratorForm(): JSX.Element {
       setIsLoading(true);
       setErrorMessage("");
       setCommits([]);
+      setIssues([]);
 
       try {
-        const data = await fetch(`/api/repository?url=${repoUrl}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
+        // Fetch commits and issues in parallel
+        const [commitsResponse, issuesResponse] = await Promise.all([
+          fetch(`/api/repository?url=${repoUrl}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }),
+          fetch(`/api/repository`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ repoUrl }),
+          }),
+        ]);
 
-        if (!data.ok) {
-          const text = await data.text();
-          throw new Error(text || `Request failed with ${data.status}`);
+        if (!commitsResponse.ok) {
+          const text = await commitsResponse.text();
+          throw new Error(text || `Commits request failed with ${commitsResponse.status}`);
         }
 
-        const result = (await data.json()) as RepositoryResponse;
+        if (!issuesResponse.ok) {
+          const text = await issuesResponse.text();
+          throw new Error(text || `Issues request failed with ${issuesResponse.status}`);
+        }
+
+        const commitsResult = (await commitsResponse.json()) as RepositoryResponse;
+        const issuesResult = (await issuesResponse.json()) as IssuesResponse;
         
-        setCommits(Array.isArray(result.commits) ? result.commits : []);
+        setCommits(Array.isArray(commitsResult.commits) ? commitsResult.commits : []);
+        setIssues(Array.isArray(issuesResult.issues) ? issuesResult.issues : []);
         setIsLoading(false);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
@@ -113,35 +135,58 @@ export function GeneratorForm(): JSX.Element {
           </Alert>
         ) : null}
 
-        {!commits.length && !isLoading && !errorMessage ? (
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">Your commit history will appear here.</p>
+        {!commits.length && !issues.length && !isLoading && !errorMessage ? (
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Your repository data will appear here.</p>
         ) : null}
 
         {isLoading ? (
           <div className="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
             <Spinner className="h-4 w-4" />
-            Fetching commit history...
+            Fetching repository data...
           </div>
         ) : null}
 
-        {commits.length > 0 ? (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base font-semibold">
-                Commit History ({commits.length} commits)
-              </CardTitle>
-              <Button type="button" variant="outline" size="sm" onClick={handleCopy}>
-                Copy as Markdown
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {commits.map((commit, index) => (
-                  <CommitCard key={commit.sha} commit={commit} index={index} />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        {(commits.length > 0 || issues.length > 0) ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Commits Section */}
+            {commits.length > 0 && (
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                  <CardTitle className="text-base font-semibold">
+                    Commits ({commits.length})
+                  </CardTitle>
+                  <Button type="button" variant="outline" size="sm" onClick={handleCopy}>
+                    Copy as Markdown
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {commits.map((commit, index) => (
+                      <CommitCard key={commit.sha} commit={commit} index={index} />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Issues Section */}
+            {issues.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base font-semibold">
+                    Issues ({issues.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {issues.map((issue) => (
+                      <IssueCard key={issue.id} issue={issue} />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         ) : null}
       </div>
     </div>
