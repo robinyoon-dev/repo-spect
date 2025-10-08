@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Octokit } from "octokit";
 import { parseRepoUrl } from "@/shared/lib/repository";
-import { CommitOut } from "@/shared/types/repository";
+import { CommitOut, IssueOut } from "@/shared/types/repository";
 
 export const runtime = "nodejs"; // Edge는 Octokit 일부 플러그인과 호환 이슈가 있어 nodejs 권장
 export const revalidate = 0;      // 개발 중엔 캐시 끔
@@ -123,11 +123,99 @@ export async function GET(req: Request) {
             },
             { status: 200 }
         );
-    } catch (e: any) {
+    } catch (e: unknown) {
         // Octokit 에러는 status, response 데이터가 달려오는 경우가 많음
-        const status = e?.status ?? 500;
-        const message = e?.message ?? "Unknown error";
-        const details = e?.response?.data ?? undefined;
+        const error = e as { status?: number; message?: string; response?: { data?: unknown } };
+        const status = error?.status ?? 500;
+        const message = error?.message ?? "Unknown error";
+        const details = error?.response?.data ?? undefined;
+
+        return NextResponse.json(
+            { error: "GitHub API error", message, details },
+            { status }
+        );
+    }
+}
+
+// Issues endpoint
+export async function POST(req: Request) {
+    try {
+        const body = await req.json();
+        const repoUrl = body?.repoUrl;
+
+        if (!repoUrl) {
+            return NextResponse.json(
+                { error: "`repoUrl` is required in request body" },
+                { status: 400 }
+            );
+        }
+
+        const { owner, repo } = parseRepoUrl(repoUrl);
+
+        // 옵션: 페이지네이션/필터
+        const page = Number(body?.page ?? "1");
+        const per_page = Math.min(Number(body?.per_page ?? "10"), 100); // GitHub max 100
+        const state = body?.state ?? "all"; // open, closed, all
+        const sort = body?.sort ?? "created"; // created, updated, comments
+        const direction = body?.direction ?? "desc"; // asc, desc
+
+        const res = await octokit.request("GET /repos/{owner}/{repo}/issues", {
+            owner,
+            repo,
+            page,
+            per_page,
+            state,
+            sort,
+            direction,
+        });
+
+        const issues: IssueOut[] = res.data.map((issue) => ({
+            id: issue.id,
+            number: issue.number,
+            title: issue.title,
+            body: issue.body ?? null,
+            state: issue.state as "open" | "closed",
+            url: issue.html_url,
+            authorName: issue.user?.name ?? null,
+            authorLogin: issue.user?.login ?? null,
+            authorUrl: issue.user?.html_url ?? null,
+            createdAt: issue.created_at,
+            updatedAt: issue.updated_at,
+            closedAt: issue.closed_at,
+            labels: issue.labels.map((label) => ({
+                id: typeof label === "object" ? (label.id ?? 0) : 0,
+                name: typeof label === "object" ? (label.name ?? "") : (label ?? ""),
+                color: typeof label === "object" ? (label.color ?? "") : "",
+                description: typeof label === "object" ? (label.description ?? null) : null,
+            })),
+            assignees: issue.assignees?.map((assignee) => ({
+                id: assignee.id,
+                login: assignee.login,
+                name: assignee.name ?? null,
+                url: assignee.html_url,
+            })) ?? [],
+        }));
+
+        const rateRemaining = res.headers["x-ratelimit-remaining"];
+        const rateLimit = res.headers["x-ratelimit-limit"];
+
+        return NextResponse.json(
+            {
+                owner,
+                repo,
+                page,
+                per_page,
+                count: issues.length,
+                rate: { remaining: rateRemaining, limit: rateLimit },
+                issues,
+            },
+            { status: 200 }
+        );
+    } catch (e: unknown) {
+        const error = e as { status?: number; message?: string; response?: { data?: unknown } };
+        const status = error?.status ?? 500;
+        const message = error?.message ?? "Unknown error";
+        const details = error?.response?.data ?? undefined;
 
         return NextResponse.json(
             { error: "GitHub API error", message, details },
