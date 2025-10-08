@@ -67,6 +67,7 @@ export function GeneratorForm(): JSX.Element {
             ? JSON.stringify(result.commits, null, 2)
             : ""
         );
+        setIsLoading(false);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
         setErrorMessage(message);
