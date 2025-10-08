@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
+import { CommitOut } from "@/shared/types/repository";
 
 
-interface GenerateResponse {
-  content: string;
+interface RepositoryResponse {
+  commits: CommitOut[];
 }
 
 export function GeneratorForm(): JSX.Element {
@@ -49,10 +50,9 @@ export function GeneratorForm(): JSX.Element {
       setResultMarkdown("");
 
       try {
-        const data = await fetch("/api/generate", {
-          method: "POST",
+        const data = await fetch(`/api/repository?url=${repoUrl}`, {
+          method: "GET",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ repoUrl }),
         });
 
         if (!data.ok) {
@@ -60,13 +60,16 @@ export function GeneratorForm(): JSX.Element {
           throw new Error(text || `Request failed with ${data.status}`);
         }
 
-        const result = (await data.json()) as GenerateResponse;
+        const result = (await data.json()) as RepositoryResponse;
         console.log(result);
-        setResultMarkdown(result.content ?? "");
+        setResultMarkdown(
+          Array.isArray(result.commits)
+            ? JSON.stringify(result.commits, null, 2)
+            : ""
+        );
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
         setErrorMessage(message);
-      } finally {
         setIsLoading(false);
       }
     },
