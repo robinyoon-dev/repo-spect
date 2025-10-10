@@ -11,7 +11,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { CommitOut, IssueOut } from "@/shared/types/repository";
 import { CommitCard } from "./commit-card";
 import { IssueCard } from "./issue-card";
-import { formatCommitsAsMarkdown } from "../lib/repository";
 
 interface RepositoryResponse {
   commits: CommitOut[];
@@ -42,14 +41,13 @@ export function GeneratorForm(): JSX.Element {
   }, [repoUrl]);
 
   const handleCopy = useCallback(async () => {
-    if (!commits.length) return;
+    if (!content) return;
     try {
-      const markdownContent = formatCommitsAsMarkdown(commits);
-      await navigator.clipboard.writeText(markdownContent);
+      await navigator.clipboard.writeText(content);
     } catch (err) {
       console.error("clipboard write failed", err);
     }
-  }, [commits]);
+  }, [content]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -188,9 +186,7 @@ export function GeneratorForm(): JSX.Element {
                   <CardTitle className="text-base font-semibold">
                     Commits ({commits.length})
                   </CardTitle>
-                  <Button type="button" variant="outline" size="sm" onClick={handleCopy}>
-                    Copy as Markdown
-                  </Button>
+
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -224,7 +220,21 @@ export function GeneratorForm(): JSX.Element {
 
         {content ? (
           <div className="mt-8">
-            <ReactMarkdown>{content}</ReactMarkdown>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <CardTitle className="text-base font-semibold">
+                  Generated Retrospective
+                </CardTitle>
+                <Button type="button" variant="outline" size="sm" onClick={handleCopy}>
+                  Copy as Markdown
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="prose prose-sm max-w-none dark:prose-invert">
+                  <ReactMarkdown>{content}</ReactMarkdown>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         ) : null}
       </div>
