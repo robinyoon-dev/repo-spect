@@ -1,25 +1,25 @@
 import { CommitOut, IssueOut } from "../types/repository";
 
 export const getFormattedCommitsData = (commits: CommitOut[]) => {
-  const commitsData = commits.map((commit, index) =>
-    `${index + 1}. **${commit.message || 'No message'}** (${commit.authorName || 'Unknown'}) - ${commit.date || 'Unknown date'}`
-  ).join('\n');
+  const commitsData = commits
+    .map(
+      (commit, index) =>
+        `${index + 1}. **${commit.message || "No message"}** (${commit.authorName || "Unknown"}) - ${commit.date || "Unknown date"}`
+    )
+    .join("\n");
 
   return commitsData;
-}
+};
 
 export const getFormattedIssuesData = (issues: IssueOut[]) => {
-  const issuesData = issues.map((issue, index) =>
-    `${index + 1}. **${issue.title}** - ${issue.state} (${issue.createdAt})`
-  ).join('\n');
+  const issuesData = issues
+    .map((issue, index) => `${index + 1}. **${issue.title}** - ${issue.state} (${issue.createdAt})`)
+    .join("\n");
 
   return issuesData;
-}
-
+};
 
 export const getPrompts = (commits: string, issues: string) => {
-
-
   const prompt = `You are an expert AI project manager. Your task is to analyze the provided commit and issue data to generate a structured project retrospective in Korean.
 
 Focus on extracting and classifying information directly from the data provided.
@@ -85,6 +85,4 @@ Based *only* on the data above, generate a retrospective report in Korean with t
 Now, generate the report in Korean based on the provided data. Use Markdown for formatting.`;
 
   return prompt;
-
-
-}
+};
