@@ -28,6 +28,8 @@ export function GeneratorForm(): JSX.Element {
   const [commits, setCommits] = useState<CommitOut[]>([]);
   const [issues, setIssues] = useState<IssueOut[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [isGeneratingContent, setIsGeneratingContent] = useState<boolean>(false);
+  const [content, setContent] = useState<string>("");
 
   const isRepoUrlValid = useMemo(() => {
     if (!repoUrl) return false;
@@ -48,6 +50,9 @@ export function GeneratorForm(): JSX.Element {
       console.error("clipboard write failed", err);
     }
   }, [commits]);
+
+
+
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -89,6 +94,7 @@ export function GeneratorForm(): JSX.Element {
         setCommits(Array.isArray(commitsResult.commits) ? commitsResult.commits : []);
         setIssues(Array.isArray(issuesResult.issues) ? issuesResult.issues : []);
         setIsLoading(false);
+        handleGenerate(commitsResult.commits, issuesResult.issues);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
         setErrorMessage(message);
@@ -97,6 +103,39 @@ export function GeneratorForm(): JSX.Element {
     },
     [isRepoUrlValid, repoUrl]
   );
+
+
+  const handleGenerate = async (commits: CommitOut[], issues: IssueOut[]) =>{
+
+    setIsLoading(true);
+    setErrorMessage("");
+    setIsGeneratingContent(true);
+
+    try {
+      const response = await fetch(`/api/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ commits, issues }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Request failed with ${response.status}`);
+      }
+
+      const result = await response.json();
+      setContent(result.content);
+      setIsGeneratingContent(false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      setErrorMessage(message);
+      console.error("generate request failed", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+
 
   return (
     <div className="w-full max-w-2xl">
@@ -115,7 +154,7 @@ export function GeneratorForm(): JSX.Element {
           onChange={(e) => setRepoUrl(e.target.value)}
         />
 
-        <Button type="submit" disabled={!isRepoUrlValid || isLoading}>
+        <Button type="submit" disabled={!isRepoUrlValid || isLoading || isGeneratingContent}>
           {isLoading ? (
             <span className="inline-flex items-center gap-2">
               <Spinner className="h-4 w-4" />
@@ -148,7 +187,7 @@ export function GeneratorForm(): JSX.Element {
         ) : null}
 
         {commits.length > 0 || issues.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6">
             {/* Commits Section */}
             {commits.length > 0 && (
               <Card>
@@ -187,6 +226,12 @@ export function GeneratorForm(): JSX.Element {
                 </CardContent>
               </Card>
             )}
+          </div>
+        ) : null}
+
+        {content ? (
+          <div className="mt-8">
+            <ReactMarkdown>{content}</ReactMarkdown>
           </div>
         ) : null}
       </div>
