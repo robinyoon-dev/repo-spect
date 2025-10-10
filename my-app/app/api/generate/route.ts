@@ -1,16 +1,17 @@
+import { generateContent } from "@/shared/lib/gemini";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const repoUrl = typeof body?.repoUrl === "string" ? body.repoUrl : "";
+    const commits = body?.commits;
+    const issues = body?.issues;
 
-    if (!repoUrl) {
-      return NextResponse.json({ error: "Missing repoUrl" }, { status: 400 });
+    if (!commits || !issues) {
+      return NextResponse.json({ error: "Missing commits or issues" }, { status: 400 });
     }
 
-    // TODO: Replace with real implementation calling GitHub + Gemini
-    const content = `# DUMMY DATA! Repo-spect Draft\n\nSource: ${repoUrl}\n\n- This is a placeholder response.\n- Wire this to Gemini once the backend is ready.`;
+    const content = await generateContent(commits, issues);
 
     return NextResponse.json({ content }, { status: 200 });
   } catch {
