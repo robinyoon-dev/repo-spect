@@ -39,17 +39,19 @@ function Button({
   variant,
   size,
   asChild = false,
+  cursor = "cursor-pointer",
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    cursor?: string;
   }) {
   const Comp = asChild ? Slot : "button";
 
   return (
     <Comp
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), cursor, className)}
       {...props}
     />
   );
