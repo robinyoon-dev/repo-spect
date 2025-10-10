@@ -12,11 +12,11 @@ interface CollapsibleSectionProps {
   defaultOpen?: boolean;
 }
 
-export function CollapsibleSection({ 
-  title, 
-  count, 
-  children, 
-  defaultOpen = false 
+export function CollapsibleSection({
+  title,
+  count,
+  children,
+  defaultOpen = false,
 }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -32,11 +32,7 @@ export function CollapsibleSection({
           onClick={() => setIsOpen(!isOpen)}
           className="h-8 w-8 p-0"
         >
-          {isOpen ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
+          {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           <span className="sr-only">
             {isOpen ? "Collapse" : "Expand"} {title.toLowerCase()}
           </span>
@@ -44,9 +40,7 @@ export function CollapsibleSection({
       </CardHeader>
       {isOpen && (
         <CardContent>
-          <div className="space-y-4">
-            {children}
-          </div>
+          <div className="space-y-4">{children}</div>
         </CardContent>
       )}
     </Card>

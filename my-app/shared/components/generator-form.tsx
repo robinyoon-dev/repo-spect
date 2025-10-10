@@ -94,10 +94,10 @@ export function GeneratorForm(): JSX.Element {
         const issuesResponse = await fetch(`/api/repository`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             repoUrl,
             per_page: 100,
-            state: "all"
+            state: "all",
           }),
         });
 
@@ -151,7 +151,6 @@ export function GeneratorForm(): JSX.Element {
     }
   };
 
-
   return (
     <div className="w-full max-w-2xl">
       <form onSubmit={handleSubmit} className="flex w-full flex-col gap-3">
@@ -169,7 +168,10 @@ export function GeneratorForm(): JSX.Element {
           onChange={(e) => setRepoUrl(e.target.value)}
         />
 
-        <Button type="submit" disabled={!isRepoUrlValid || isLoadingCommits || isLoadingIssues || isGeneratingContent}>
+        <Button
+          type="submit"
+          disabled={!isRepoUrlValid || isLoadingCommits || isLoadingIssues || isGeneratingContent}
+        >
           {isLoadingCommits || isLoadingIssues ? (
             <span className="inline-flex items-center gap-2">
               <Spinner className="h-4 w-4" />
@@ -193,19 +195,25 @@ export function GeneratorForm(): JSX.Element {
           </Alert>
         ) : null}
 
-        {!commits.length && !issues.length && !isLoadingCommits && !isLoadingIssues && !errorMessage ? (
+        {!commits.length &&
+        !issues.length &&
+        !isLoadingCommits &&
+        !isLoadingIssues &&
+        !errorMessage ? (
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
             Your repository data from the last {RECENT_ACTIVITY_DAYS} days will appear here.
           </p>
         ) : null}
 
-        {(commits.length > 0 || issues.length > 0 || isLoadingCommits || isLoadingIssues) ? (
+        {commits.length > 0 || issues.length > 0 || isLoadingCommits || isLoadingIssues ? (
           <div className="grid grid-cols-1 gap-6">
             {/* Commits Section */}
             {isLoadingCommits ? (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base font-semibold">Commits (Last {RECENT_ACTIVITY_DAYS} Days)</CardTitle>
+                  <CardTitle className="text-base font-semibold">
+                    Commits (Last {RECENT_ACTIVITY_DAYS} Days)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
@@ -215,7 +223,10 @@ export function GeneratorForm(): JSX.Element {
                 </CardContent>
               </Card>
             ) : commits.length > 0 ? (
-              <CollapsibleSection title={`Commits (Last ${RECENT_ACTIVITY_DAYS} Days)`} count={commits.length}>
+              <CollapsibleSection
+                title={`Commits (Last ${RECENT_ACTIVITY_DAYS} Days)`}
+                count={commits.length}
+              >
                 {commits.map((commit, index) => (
                   <CommitCard key={commit.sha} commit={commit} index={index} />
                 ))}
@@ -226,7 +237,9 @@ export function GeneratorForm(): JSX.Element {
             {isLoadingIssues ? (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base font-semibold">Issues (Last {RECENT_ACTIVITY_DAYS} Days)</CardTitle>
+                  <CardTitle className="text-base font-semibold">
+                    Issues (Last {RECENT_ACTIVITY_DAYS} Days)
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
@@ -236,7 +249,10 @@ export function GeneratorForm(): JSX.Element {
                 </CardContent>
               </Card>
             ) : issues.length > 0 ? (
-              <CollapsibleSection title={`Issues (Last ${RECENT_ACTIVITY_DAYS} Days)`} count={issues.length}>
+              <CollapsibleSection
+                title={`Issues (Last ${RECENT_ACTIVITY_DAYS} Days)`}
+                count={issues.length}
+              >
                 {issues.map((issue) => (
                   <IssueCard key={issue.id} issue={issue} />
                 ))}
@@ -249,15 +265,13 @@ export function GeneratorForm(): JSX.Element {
           <div className="mt-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-base font-semibold">
-                  Generated Retrospective
-                </CardTitle>
+                <CardTitle className="text-base font-semibold">Generated Retrospective</CardTitle>
                 <Button type="button" variant="outline" size="sm" onClick={handleCopy}>
                   Copy as Markdown
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-sm max-w-none dark:prose-invert">
+                <div className="prose prose-sm dark:prose-invert max-w-none">
                   <ReactMarkdown>{content}</ReactMarkdown>
                 </div>
               </CardContent>
@@ -267,9 +281,7 @@ export function GeneratorForm(): JSX.Element {
           <div className="mt-8">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base font-semibold">
-                  Generated Retrospective
-                </CardTitle>
+                <CardTitle className="text-base font-semibold">Generated Retrospective</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
