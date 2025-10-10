@@ -51,9 +51,6 @@ export function GeneratorForm(): JSX.Element {
     }
   }, [commits]);
 
-
-
-
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -104,9 +101,7 @@ export function GeneratorForm(): JSX.Element {
     [isRepoUrlValid, repoUrl]
   );
 
-
-  const handleGenerate = async (commits: CommitOut[], issues: IssueOut[]) =>{
-
+  const handleGenerate = async (commits: CommitOut[], issues: IssueOut[]) => {
     setIsLoading(true);
     setErrorMessage("");
     setIsGeneratingContent(true);
@@ -133,9 +128,7 @@ export function GeneratorForm(): JSX.Element {
     } finally {
       setIsLoading(false);
     }
-  }
-
-
+  };
 
   return (
     <div className="w-full max-w-2xl">
