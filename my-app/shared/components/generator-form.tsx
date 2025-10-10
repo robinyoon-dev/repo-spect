@@ -12,6 +12,7 @@ import { CommitOut, IssueOut } from "@/shared/types/repository";
 import { CommitCard } from "./commit-card";
 import { IssueCard } from "./issue-card";
 import { CollapsibleSection } from "./collapsible-section";
+import { RECENT_ACTIVITY_DAYS } from "@/shared/lib/date";
 
 interface RepositoryResponse {
   commits: CommitOut[];
@@ -64,10 +65,10 @@ export function GeneratorForm(): JSX.Element {
       let fetchedCommits: CommitOut[] = [];
       let fetchedIssues: IssueOut[] = [];
 
-      // Fetch commits
+      // Fetch commits (last 7 days)
       setIsLoadingCommits(true);
       try {
-        const commitsResponse = await fetch(`/api/repository?url=${repoUrl}`, {
+        const commitsResponse = await fetch(`/api/repository?url=${repoUrl}&all=true&cap=100`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
@@ -87,13 +88,17 @@ export function GeneratorForm(): JSX.Element {
         setIsLoadingCommits(false);
       }
 
-      // Fetch issues
+      // Fetch issues (last 7 days)
       setIsLoadingIssues(true);
       try {
         const issuesResponse = await fetch(`/api/repository`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ repoUrl }),
+          body: JSON.stringify({ 
+            repoUrl,
+            per_page: 100,
+            state: "all"
+          }),
         });
 
         if (!issuesResponse.ok) {
@@ -190,7 +195,7 @@ export function GeneratorForm(): JSX.Element {
 
         {!commits.length && !issues.length && !isLoadingCommits && !isLoadingIssues && !errorMessage ? (
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            Your repository data will appear here.
+            Your repository data from the last {RECENT_ACTIVITY_DAYS} days will appear here.
           </p>
         ) : null}
 
@@ -200,7 +205,7 @@ export function GeneratorForm(): JSX.Element {
             {isLoadingCommits ? (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base font-semibold">Commits</CardTitle>
+                  <CardTitle className="text-base font-semibold">Commits (Last {RECENT_ACTIVITY_DAYS} Days)</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
@@ -210,7 +215,7 @@ export function GeneratorForm(): JSX.Element {
                 </CardContent>
               </Card>
             ) : commits.length > 0 ? (
-              <CollapsibleSection title="Commits" count={commits.length}>
+              <CollapsibleSection title={`Commits (Last ${RECENT_ACTIVITY_DAYS} Days)`} count={commits.length}>
                 {commits.map((commit, index) => (
                   <CommitCard key={commit.sha} commit={commit} index={index} />
                 ))}
@@ -221,7 +226,7 @@ export function GeneratorForm(): JSX.Element {
             {isLoadingIssues ? (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base font-semibold">Issues</CardTitle>
+                  <CardTitle className="text-base font-semibold">Issues (Last {RECENT_ACTIVITY_DAYS} Days)</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
@@ -231,7 +236,7 @@ export function GeneratorForm(): JSX.Element {
                 </CardContent>
               </Card>
             ) : issues.length > 0 ? (
-              <CollapsibleSection title="Issues" count={issues.length}>
+              <CollapsibleSection title={`Issues (Last ${RECENT_ACTIVITY_DAYS} Days)`} count={issues.length}>
                 {issues.map((issue) => (
                   <IssueCard key={issue.id} issue={issue} />
                 ))}
