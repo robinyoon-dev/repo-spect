@@ -11,6 +11,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { CommitOut, IssueOut } from "@/shared/types/repository";
 import { CommitCard } from "./commit-card";
 import { IssueCard } from "./issue-card";
+import { CollapsibleSection } from "./collapsible-section";
 
 interface RepositoryResponse {
   commits: CommitOut[];
@@ -181,39 +182,20 @@ export function GeneratorForm(): JSX.Element {
           <div className="grid grid-cols-1 gap-6">
             {/* Commits Section */}
             {commits.length > 0 && (
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                  <CardTitle className="text-base font-semibold">
-                    Commits ({commits.length})
-                  </CardTitle>
-
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {commits.map((commit, index) => (
-                      <CommitCard key={commit.sha} commit={commit} index={index} />
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <CollapsibleSection title="Commits" count={commits.length}>
+                {commits.map((commit, index) => (
+                  <CommitCard key={commit.sha} commit={commit} index={index} />
+                ))}
+              </CollapsibleSection>
             )}
 
             {/* Issues Section */}
             {issues.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base font-semibold">
-                    Issues ({issues.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {issues.map((issue) => (
-                      <IssueCard key={issue.id} issue={issue} />
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <CollapsibleSection title="Issues" count={issues.length}>
+                {issues.map((issue) => (
+                  <IssueCard key={issue.id} issue={issue} />
+                ))}
+              </CollapsibleSection>
             )}
           </div>
         ) : null}
