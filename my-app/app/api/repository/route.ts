@@ -41,7 +41,7 @@ export async function GET(req: Request) {
     const branch = searchParams.get("branch") ?? undefined; // sha 파라미터
     const since = searchParams.get("since") ?? undefined; // ISO8601 (옵션)
     const until = searchParams.get("until") ?? undefined; // ISO8601 (옵션)
-    
+
     // 지난 1주일 필터링 (기본값)
     const sinceDate = since || getLastWeekDate();
 
@@ -156,7 +156,7 @@ export async function POST(req: Request) {
     const state = body?.state ?? "all"; // open, closed, all
     const sort = body?.sort ?? "created"; // created, updated, comments
     const direction = body?.direction ?? "desc"; // asc, desc
-    
+
     // 지난 1주일 필터링 (기본값)
     const sinceDate = body?.since || getLastWeekDate();
 
@@ -171,9 +171,7 @@ export async function POST(req: Request) {
     });
 
     // 지난 1주일 필터링
-    const filteredIssues = res.data.filter((issue) => 
-      isWithinLastNDays(issue.created_at)
-    );
+    const filteredIssues = res.data.filter((issue) => isWithinLastNDays(issue.created_at));
 
     const issues: IssueOut[] = filteredIssues.map((issue) => ({
       id: issue.id,

@@ -30,7 +30,10 @@ export function getLastWeekDate(): string {
  * @param days Number of days to look back (default: RECENT_ACTIVITY_DAYS)
  * @returns true if the date is within the last N days
  */
-export function isWithinLastNDays(dateString: string, days: number = RECENT_ACTIVITY_DAYS): boolean {
+export function isWithinLastNDays(
+  dateString: string,
+  days: number = RECENT_ACTIVITY_DAYS
+): boolean {
   const date = new Date(dateString);
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - days);
