@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { Octokit } from "octokit";
-import { parseRepoUrl } from "@/shared/lib/repository";
+import { parseRepoUrl } from "@/lib/repository";
 import { CommitOut, IssueOut } from "@/shared/types/repository";
+import { getLastWeekDate, isWithinLastNDays } from "@/lib/date";
 
 export const runtime = "nodejs"; // Edge는 Octokit 일부 플러그인과 호환 이슈가 있어 nodejs 권장
 export const revalidate = 0; // 개발 중엔 캐시 끔
@@ -40,6 +41,9 @@ export async function GET(req: Request) {
     const branch = searchParams.get("branch") ?? undefined; // sha 파라미터
     const since = searchParams.get("since") ?? undefined; // ISO8601 (옵션)
     const until = searchParams.get("until") ?? undefined; // ISO8601 (옵션)
+    
+    // 지난 1주일 필터링 (기본값)
+    const sinceDate = since || getLastWeekDate();
 
     // 옵션: 여러 페이지를 합쳐 반환
     const all = (searchParams.get("all") ?? "").toLowerCase() === "true";
@@ -53,7 +57,7 @@ export async function GET(req: Request) {
         page,
         per_page,
         sha: branch,
-        since,
+        since: sinceDate,
         until,
       });
 
@@ -91,7 +95,7 @@ export async function GET(req: Request) {
       repo,
       per_page: 100,
       sha: branch,
-      since,
+      since: sinceDate,
       until,
     });
 
@@ -152,6 +156,9 @@ export async function POST(req: Request) {
     const state = body?.state ?? "all"; // open, closed, all
     const sort = body?.sort ?? "created"; // created, updated, comments
     const direction = body?.direction ?? "desc"; // asc, desc
+    
+    // 지난 1주일 필터링 (기본값)
+    const sinceDate = body?.since || getLastWeekDate();
 
     const res = await octokit.request("GET /repos/{owner}/{repo}/issues", {
       owner,
@@ -163,7 +170,12 @@ export async function POST(req: Request) {
       direction,
     });
 
-    const issues: IssueOut[] = res.data.map((issue) => ({
+    // 지난 1주일 필터링
+    const filteredIssues = res.data.filter((issue) => 
+      isWithinLastNDays(issue.created_at)
+    );
+
+    const issues: IssueOut[] = filteredIssues.map((issue) => ({
       id: issue.id,
       number: issue.number,
       title: issue.title,
